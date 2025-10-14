@@ -26,12 +26,13 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['intranet-centro-odontologico-monfer-spa.onrender.com']
+ALLOWED_HOSTS = ['intranet-centro-odontologico-monfer-spa.onrender.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -122,3 +123,24 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+JAZZMIN_SETTINGS = {
+    # Título que aparecerá en la pestaña del navegador y en el login
+    "site_title": "Intranet Monfer",
+
+    # Título en la esquina superior izquierda (puede ser corto)
+    "site_header": "Monfer SPA",
+
+    # Logo para la pantalla de login
+    "site_logo": None, # Puedes poner la ruta a un logo en tus archivos estáticos
+
+    # Texto de bienvenida en la pantalla de login
+    "welcome_sign": "Bienvenido a la Intranet de Monfer SPA",
+
+    # Copyright en el footer
+    "copyright": "Monfer SPA Ltd.",
+
+    # Temas visuales (puedes probar otros como "cerulean", "cyborg", "darkly", etc.)
+    "theme": "litera",
+}
