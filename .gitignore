@@ -1,0 +1,27 @@
+# Entorno virtual
+.venv/
+venv/
+
+# Archivos de cache y compilados
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de entorno o configuración local
+.env
+*.env
+
+# Archivos de base de datos locales (si no usas PostgreSQL aún)
+db.sqlite3
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de logs
+*.log
+
+# Archivos de VSCode o PyCharm
+.vscode/
+.idea/
