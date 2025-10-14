@@ -28,8 +28,10 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['intranet-centro-odontologico-monfer-spa.onrender.com', '127.0.0.1', 'localhost']
 
+CSRF_TRUSTED_ORIGINS = ['https://intranet-centro-odontologico-monfer-spa.onrender.com']
 
-# Application definition
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 INSTALLED_APPS = [
     'jazzmin',
