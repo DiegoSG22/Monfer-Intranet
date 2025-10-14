@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-tpnanjrm*a8yol!puops-)qwdwq2zz=55(se$)e-3&6^nk2yp$'
-
+SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [intranet-centro-odontologico-monfer-spa.onrender.com]
 
 
 # Application definition
@@ -74,14 +75,10 @@ WSGI_APPLICATION = 'mi_web.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mi_sitio_db',
-        'USER' :'postgres',
-        'PASSWORD': 'perla321',
-        'HOST':'localhost',
-        'PORT': '5433',
-    }
+    'default': dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 
