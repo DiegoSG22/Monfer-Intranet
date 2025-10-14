@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = [intranet-centro-odontologico-monfer-spa.onrender.com]
+ALLOWED_HOSTS = ['intranet-centro-odontologico-monfer-spa.onrender.com']
 
 
 # Application definition
