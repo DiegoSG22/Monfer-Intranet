@@ -78,13 +78,26 @@ WSGI_APPLICATION = 'mi_web.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
-
+if 'DATABASE_URL' in os.environ:
+    # Configuración para producción (Render)
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    # Configuración para desarrollo local (tu PC)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'mi_sitio_db',        # El nombre de tu base de datos local
+            'USER': 'postgres',           # Tu usuario de PostgreSQL local
+            'PASSWORD': 'perlita',  # TU CONTRASEÑA de PostgreSQL local
+            'HOST': 'localhost',
+            'PORT': '5433',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
