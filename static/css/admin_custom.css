@@ -1,6 +1,21 @@
-/* Aumenta el ancho de las cajas de selección de permisos para que el texto quepa */
+/*
+  SOLUCIÓN PARA PERMISOS ILEGIBLES EN EL ADMIN DE DJANGO
+*/
+
+/* 1. Prepara los contenedores para que puedan tener una barra de scroll */
+.selector-available,
+.selector-chosen {
+    overflow-x: auto; /* ESTA ES LA MAGIA: Muestra una barra de scroll horizontal si el contenido es más ancho */
+    padding-bottom: 15px; /* Añade un pequeño espacio abajo para que la barra no tape el último elemento */
+}
+
+/* 2. Fuerza a las cajas de selección internas a ser lo suficientemente anchas */
 .selector-available select,
 .selector-chosen select {
-    width: 100% !important; /* Hace que la caja ocupe todo el ancho disponible */
-    min-width: 300px;       /* Asegura un ancho mínimo por si acaso */
+    /*
+      Le damos un ancho mínimo muy grande para forzar el desbordamiento
+      y así activar la barra de scroll del contenedor padre.
+      Ajusta este valor si sigue siendo muy corto.
+    */
+    min-width: 450px !important;
 }
