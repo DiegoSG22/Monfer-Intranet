@@ -148,4 +148,10 @@ JAZZMIN_SETTINGS = {
 
     # Temas visuales (puedes probar otros como "cerulean", "cyborg", "darkly", etc.)
     "theme": "litera",
+
+    # ... todas tus otras configuraciones de Jazzmin ...
+    "theme": "litera",
+
+    # Añade esta línea para cargar tu archivo CSS personalizado
+    "custom_css": "css/admin_custom.css",
 }

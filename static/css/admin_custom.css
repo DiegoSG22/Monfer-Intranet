@@ -1,0 +1,6 @@
+/* Aumenta el ancho de las cajas de selección de permisos para que el texto quepa */
+.selector-available select,
+.selector-chosen select {
+    width: 100% !important; /* Hace que la caja ocupe todo el ancho disponible */
+    min-width: 300px;       /* Asegura un ancho mínimo por si acaso */
+}
