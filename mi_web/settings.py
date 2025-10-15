@@ -169,3 +169,5 @@ JAZZMIN_SETTINGS = {
     # Añade esta línea para cargar tu archivo CSS personalizado
     "custom_css": "css/admin_custom.css",
 }
+
+LOGIN_REDIRECT_URL = '/dashboard/'
