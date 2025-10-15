@@ -6,13 +6,20 @@ class AtencionForm(forms.ModelForm):
     """Formulario para la información principal de la atención."""
     class Meta:
         model = Atencion
-        # El doctor se asigna automáticamente, por eso no está aquí
-        fields = ['paciente', 'fecha']
+        # Añadimos los nuevos campos a la lista
+        fields = ['paciente', 'fecha', 'motivo_visita', 'metodo_pago']
         widgets = {
             'fecha': forms.DateInput(
                 attrs={'type': 'date', 'class': 'form-control'}
             ),
             'paciente': forms.Select(
+                attrs={'class': 'form-control'}
+            ),
+            # Damos estilo a los nuevos campos
+            'motivo_visita': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'Ej: Control de rutina'}
+            ),
+            'metodo_pago': forms.Select(
                 attrs={'class': 'form-control'}
             ),
         }
