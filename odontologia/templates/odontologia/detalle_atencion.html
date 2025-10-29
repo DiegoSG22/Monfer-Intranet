@@ -1,0 +1,114 @@
+{% extends 'odontologia/dashboard.html' %}
+{% load static %}
+{% load i18n %} {# Para formatos de números si los necesitas #}
+
+{% block title %}Detalle de Atención - {{ atencion.fecha|date:"d/m/Y" }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Estilos adicionales si son necesarios */
+    .detalle-seccion { margin-bottom: 1.5rem; }
+    .detalle-seccion h5 {
+        color: var(--sidebar-text); /* Color rosa */
+        border-bottom: 2px solid var(--sidebar-active-bg);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    [data-bs-theme="dark"] .detalle-seccion h5 {
+         color: var(--sidebar-active-bg); /* Rosa en modo oscuro */
+    }
+    /* Asegura que el texto dentro del list-group-item se ajuste al tema */
+    [data-bs-theme="dark"] .list-group-item {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+    .list-group-item span { font-weight: 500; }
+    .list-group-item .text-muted {
+        color: #6c757d !important;
+    }
+    [data-bs-theme="dark"] .list-group-item .text-muted {
+        color: #adb5bd !important;
+    }
+    [data-bs-theme="dark"] .badge.bg-secondary {
+         background-color: #5a5a5a !important; /* Un gris oscuro más visible */
+         color: #fff !important;
+    }
+
+</style>
+{% endblock %}
+
+{% block main_content_body %}
+    <div class="card shadow-sm">
+        <div class="card-header card-header-pink d-flex justify-content-between align-items-center">
+             <h3 class="mb-0 h5 text-white">Detalle de Atención - {{ atencion.fecha|date:"d/m/Y" }}</h3>
+             <a href="{% url 'dashboard' %}" class="btn btn-sm btn-light">Volver al Panel</a>
+        </div>
+        <div class="card-body">
+            <div class="detalle-seccion">
+                <h5><i class="fas fa-user me-2"></i>Datos del Paciente</h5>
+                <div class="row">
+                    <div class="col-md-6"><strong>Nombre:</strong> {{ atencion.paciente_nombre }} {{ atencion.paciente_apellido }}</div>
+                    <div class="col-md-6"><strong>RUT:</strong> {{ atencion.paciente_rut }}</div>
+                    {% if atencion.paciente_edad %}
+                    <div class="col-md-6"><strong>Edad:</strong> {{ atencion.paciente_edad }} años</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="detalle-seccion">
+                <h5><i class="fas fa-notes-medical me-2"></i>Datos de la Atención</h5>
+                 <div class="row">
+                    <div class="col-md-6"><strong>Fecha:</strong> {{ atencion.fecha|date:"d F, Y" }}</div>
+                    <div class="col-md-6"><strong>Motivo:</strong> {{ atencion.motivo_visita|default:"No especificado" }}</div>
+                    <div class="col-md-6"><strong>Método de Pago:</strong> {{ atencion.get_metodo_pago_display }}</div>
+                </div>
+            </div>
+
+            <div class="detalle-seccion">
+                <h5><i class="fas fa-tooth me-2"></i>Tratamientos Realizados</h5>
+                {% if detalles %}
+                    <ul class="list-group">
+                        {% for detalle in detalles %}
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ detalle.get_especialidad_display }}</h6>
+                                    <small class="text-muted">Valor: ${{ detalle.valor|floatformat:0 }}</small>
+                                </div>
+                                <p class="mb-1">{{ detalle.descripcion|linebreaksbr }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No se registraron tratamientos específicos.</p>
+                {% endif %}
+            </div>
+
+            <div class="detalle-seccion">
+                <h5><i class="fas fa-vial me-2"></i>Exámenes Solicitados</h5>
+                 {% if examenes %}
+                    <ul class="list-group">
+                        {% for examen_sol in examenes %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>{{ examen_sol.examen.nombre }}</span>
+                                <span class="badge bg-secondary rounded-pill">Costo: ${{ examen_sol.costo|floatformat:0 }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No se solicitaron exámenes.</p>
+                {% endif %}
+             </div>
+
+             <hr class="my-4">
+             <div class="d-flex justify-content-end">
+                 <a href="{% url 'eliminar_atencion' pk=atencion.pk %}" class="btn btn-outline-danger me-2">
+                     <i class="fas fa-trash me-1"></i> Eliminar
+                 </a>
+                 <a href="{% url 'editar_atencion' pk=atencion.pk %}" class="btn btn-primary">
+                     <i class="fas fa-edit me-1"></i> Editar Atención
+                 </a>
+             </div>
+             </div>
+    </div>
+{% endblock %}

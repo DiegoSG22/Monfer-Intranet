@@ -1,0 +1,29 @@
+{% extends 'odontologia/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Confirmar Eliminación{% endblock %}
+
+{% block main_content_body %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+             <h3 class="mb-0 h5">Confirmar Eliminación</h3>
+        </div>
+        <div class="card-body">
+            <p class="fs-5">
+                ¿Estás seguro de que quieres eliminar permanentemente la atención registrada para
+                <strong>{{ atencion.paciente_nombre }} {{ atencion.paciente_apellido }}</strong>
+                el día <strong>{{ atencion.fecha|date:"d/m/Y" }}</strong>?
+            </p>
+            <p class="text-danger fw-bold">¡Esta acción no se puede deshacer!</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{% url 'detalle_atencion' pk=atencion.pk %}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Sí, Eliminar Permanentemente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
