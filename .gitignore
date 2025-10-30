@@ -25,3 +25,4 @@ Thumbs.db
 # Archivos de VSCode o PyCharm
 .vscode/
 .idea/
+/media/
