@@ -263,72 +263,72 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    // --- Lógica del Wizard (Siguiente/Anterior) CON VALIDACIÓN ---
-    // Función para validar una sección específica del formulario
-    function validateStep(stepId) {
-        const stepDiv = document.getElementById(stepId);
-        // Busca TODOS los campos requeridos y visibles dentro de esta sección
-        // que no estén deshabilitados
-        const inputs = stepDiv.querySelectorAll('input:required:not([disabled]), select:required:not([disabled]), textarea:required:not([disabled])');
-        let allValid = true;
+        // --- Lógica del Wizard (Siguiente/Anterior) CON VALIDACIÓN ---
+        
+        // Función para validar una sección específica del formulario
+        function validateStep(stepId) {
+            const stepDiv = document.getElementById(stepId);
+            // CORREGIDO: Busca TODOS los campos visibles (no solo los :required)
+            const inputs = stepDiv.querySelectorAll('input:not([type="hidden"]):not([type="button"]):not([type="submit"]):not([disabled]), select:not([disabled]), textarea:not([disabled])');
+            let allValid = true;
 
-        for (const input of inputs) {
-            // Usa la API de validación del navegador
-            if (!input.checkValidity()) {
-                allValid = false;
-                // Muestra el mensaje de error nativo del navegador (el "globo")
-                input.reportValidity();
-                break; // Detente en el primer error
+            for (const input of inputs) {
+                // Usa la API de validación del navegador
+                if (!input.checkValidity()) {
+                    allValid = false;
+                    // Muestra el mensaje de error nativo del navegador (el "globo")
+                    input.reportValidity();
+                    break; // Detente en el primer error
+                }
+            }
+            return allValid;
+        }
+
+        function nextStep(currentStepNum, nextStepNum) {
+            // Valida la sección actual ANTES de avanzar
+            if (validateStep('step-' + currentStepNum)) {
+                document.getElementById('step-' + currentStepNum).classList.remove('active');
+                document.getElementById('step-' + nextStepNum).classList.add('active');
+                window.scrollTo(0, 0); // Sube al inicio de la página
             }
         }
-        return allValid;
-    }
 
-    function nextStep(currentStepNum, nextStepNum) {
-        // Valida la sección actual ANTES de avanzar
-        if (validateStep('step-' + currentStepNum)) {
+        function prevStep(currentStepNum, prevStepNum) {
+            // No se necesita validación para ir hacia atrás
             document.getElementById('step-' + currentStepNum).classList.remove('active');
-            document.getElementById('step-' + nextStepNum).classList.add('active');
+            document.getElementById('step-' + prevStepNum).classList.add('active');
             window.scrollTo(0, 0); // Sube al inicio de la página
         }
-    }
 
-    function prevStep(currentStepNum, prevStepNum) {
-        // No se necesita validación para ir hacia atrás
-        document.getElementById('step-' + currentStepNum).classList.remove('active');
-        document.getElementById('step-' + prevStepNum).classList.add('active');
-        window.scrollTo(0, 0); // Sube al inicio de la página
-    }
+        // --- Lógica del Reloj y Fecha (HH:MM) ---
+        function actualizarRelojYFechaForm() {
+             const ahora = new Date();
+             const opcionesHora = { hour: '2-digit', minute: '2-digit', hour12: false };
+             const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
+             const horaFormateada = ahora.toLocaleTimeString('es-CL', opcionesHora);
+             const fechaFormateada = ahora.toLocaleDateString('es-CL', opcionesFecha);
+             const relojEl = document.getElementById('reloj-actual');
+             const fechaEl = document.getElementById('fecha-actual');
+             if (relojEl) relojEl.textContent = horaFormateada;
+             if (fechaEl) fechaEl.textContent = fechaFormateada;
+        }
+        actualizarRelojYFechaForm();
+        setInterval(actualizarRelojYFechaForm, 1000);
 
-    // --- Lógica del Reloj y Fecha (HH:MM) ---
-    function actualizarRelojYFechaForm() {
-        const ahora = new Date();
-        const opcionesHora = { hour: '2-digit', minute: '2-digit', hour12: false };
-        const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
-        const horaFormateada = ahora.toLocaleTimeString('es-CL', opcionesHora);
-        const fechaFormateada = ahora.toLocaleDateString('es-CL', opcionesFecha);
-        const relojEl = document.getElementById('reloj-actual');
-        const fechaEl = document.getElementById('fecha-actual');
-        if (relojEl) relojEl.textContent = horaFormateada;
-        if (fechaEl) fechaEl.textContent = fechaFormateada;
-    }
-    actualizarRelojYFechaForm();
-    setInterval(actualizarRelojYFechaForm, 1000);
-
-    // --- Lógica para Cambiar Tema (Claro/Oscuro) ---
-    const themeSwitch = document.getElementById('themeSwitch');
-    function setTheme(theme) {
-        document.body.setAttribute('data-bs-theme', theme);
-        localStorage.setItem('theme', theme);
-        if (themeSwitch) { themeSwitch.checked = (theme === 'dark'); }
-    }
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    setTheme(currentTheme);
-    if(themeSwitch){
-        themeSwitch.addEventListener('change', function(e) { setTheme(e.target.checked ? 'dark' : 'light'); });
-    }
+        // --- Lógica para Cambiar Tema (Claro/Oscuro) ---
+        const themeSwitch = document.getElementById('themeSwitch');
+        function setTheme(theme) {
+            document.body.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+            if (themeSwitch) { themeSwitch.checked = (theme === 'dark'); }
+        }
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        setTheme(currentTheme);
+        if(themeSwitch){
+            themeSwitch.addEventListener('change', function(e) { setTheme(e.target.checked ? 'dark' : 'light'); });
+        }
     </script>
 </body>
 </html>
