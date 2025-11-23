@@ -14,8 +14,8 @@ if 'DATABASE_URL' in os.environ:
     # --- Configuración para Producción (Render) ---
     SECRET_KEY = os.environ.get('SECRET_KEY')
     DEBUG = False
-    ALLOWED_HOSTS = ['intranet-centro-odontologico-monfer-spa.onrender.com']
-    CSRF_TRUSTED_ORIGINS = ['https://intranet-centro-odontologico-monfer-spa.onrender.com']
+    ALLOWED_HOSTS = ['https://monfer-intranet.onrender.com', '.onrender.com']
+    CSRF_TRUSTED_ORIGINS = ['https://monfer-intranet.onrender.com']
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     DATABASES = {
