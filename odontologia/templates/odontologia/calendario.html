@@ -1,159 +1,48 @@
-{% extends 'odontologia/dashboard.html' %}
-{% load static %}
-{% load i18n %}
-
-{% block title %}Calendario de Atenciones{% endblock %}
+{% extends 'odontologia/base.html' %}
 
 {% block extra_head %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 <style>
-    /* Estilos para el calendario y el modal */
-    #calendar {
-        max-width: 1100px;
-        margin: 0 auto;
-        background-color: var(--card-bg);
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 0.125rem 0.25rem var(--shadow-color);
-    }
-    /* Ajustar colores del calendario al tema oscuro */
-    [data-bs-theme="dark"] .fc {
-        color: var(--text-color);
-    }
-    [data-bs-theme="dark"] .fc-toolbar-title {
-        color: var(--text-color);
-    }
-    [data-bs-theme="dark"] .fc-daygrid-day-number {
-        color: var(--text-color);
-    }
-    [data-bs-theme="dark"] .fc-col-header-cell-cushion {
-         color: var(--text-color);
-    }
-
-    /* Estilos para el modal de detalles */
-    #modal-body-content h5 {
-        color: var(--sidebar-text); /* Rosa */
-        border-bottom: 2px solid var(--sidebar-active-bg);
-        padding-bottom: 0.5rem;
-        margin-top: 1rem;
-    }
-    [data-bs-theme="dark"] #modal-body-content h5 {
-        color: var(--sidebar-active-bg);
-    }
-    #modal-body-content ul {
-        padding-left: 1.5rem;
-    }
+    .fc-toolbar-title { font-size: 1.5rem; font-weight: 700; text-transform: capitalize; }
+    .fc-button-primary { background-color: #e83e8c !important; border-color: #e83e8c !important; border-radius: 10px; }
+    .fc-day-today { background-color: rgba(232, 62, 140, 0.08) !important; }
+    .fc-event { cursor: pointer; border: none; padding: 4px; border-radius: 6px; }
 </style>
 {% endblock %}
 
-{% block main_content_body %}
-    <h2 class="h5 mb-4">{{ saludo }}, Dr. {{ nombre_doctor }}!</h2>
-
-    {% if messages %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 fw-bold text-primary"><i class="fas fa-calendar-day me-2"></i>Agenda de Atenciones</h2>
+        <p class="text-muted m-0">Gestiona todas las citas programadas.</p>
+    </div>
+    {% if not es_admin %}
+        <a href="{% url 'registrar_atencion' %}" target="_blank" class="btn btn-success shadow-sm px-4 rounded-pill"><i class="fas fa-plus me-2"></i> Registrar Nueva Atencion</a>
     {% endif %}
+</div>
 
-    <div class="card shadow-sm">
-        <div class="card-header card-header-pink">
-            <h4 class="h6 mb-0"><i class="fas fa-calendar-alt me-2"></i>Calendario de Atenciones</h4>
-        </div>
-        <div class="card-body">
-            <div id="calendar"></div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="detalleAtencionModal" tabindex="-1" aria-labelledby="detalleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header card-header-pink">
-                    <h5 class="modal-title h5 text-white" id="detalleModalLabel">Detalle de la Atención</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="modal-body-content">
-                    <p>Cargando detalles...</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="card shadow p-3">
+    <div id='calendar'></div>
+</div>
 {% endblock %}
 
 {% block extra_script %}
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
-        var modal = new bootstrap.Modal(document.getElementById('detalleAtencionModal'));
-        var modalBody = document.getElementById('modal-body-content');
-        var modalTitle = document.getElementById('detalleModalLabel');
+        var eventos = JSON.parse('{{ atenciones_json|safe }}');
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            locale: 'es', // Poner calendario en español
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,listWeek' // Vistas disponibles
-            },
-            events: {{ atenciones_json|safe }}, // Carga los eventos desde la vista
-
-            eventClick: function(info) {
-                // info.event.id contiene el 'pk' de la Atencion
-                modalTitle.textContent = 'Cargando...';
-                modalBody.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
-                modal.show();
-
-                // Pide los detalles al servidor usando la API que creamos
-                fetch(`/api/atencion/${info.event.id}/`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('No se pudo cargar la información.');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Construye el HTML para el modal
-                        let detallesHtml = '<h5><i class="fas fa-tooth me-2"></i>Tratamientos</h5><ul>';
-                        if (data.detalles && data.detalles.length > 0) {
-                            data.detalles.forEach(d => {
-                                detallesHtml += `<li><strong>${d.especialidad}</strong>: ${d.descripcion} <em>($${d.valor})</em></li>`;
-                            });
-                        } else {
-                            detallesHtml += '<li>No hay tratamientos registrados.</li>';
-                        }
-                        detallesHtml += '</ul>';
-
-                        let examenesHtml = '<h5><i class="fas fa-vial me-2"></i>Exámenes</h5><ul>';
-                        if (data.examenes && data.examenes.length > 0) {
-                            data.examenes.forEach(e => {
-                                examenesHtml += `<li><strong>${e.examen__nombre}</strong> <em>($${e.costo})</em></li>`;
-                            });
-                        } else {
-                            examenesHtml += '<li>No hay exámenes registrados.</li>';
-                        }
-                        examenesHtml += '</ul>';
-
-                        // Actualiza el título y el cuerpo del modal
-                        modalTitle.textContent = `Atención: ${data.paciente}`;
-                        modalBody.innerHTML = `
-                            <p><strong>Paciente:</strong> ${data.paciente} (RUT: ${data.rut})</p>
-                            <p><strong>Fecha:</strong> ${data.fecha}</p>
-                            <p><strong>Motivo:</strong> ${data.motivo}</p>
-                            <p><strong>Método de Pago:</strong> ${data.pago}</p>
-                            <hr>
-                            ${detallesHtml}
-                            <hr>
-                            ${examenesHtml}
-                        `;
-                    })
-                    .catch(err => {
-                        modalTitle.textContent = 'Error';
-                        modalBody.innerHTML = `<p class="text-danger">${err.message}</p>`;
-                    });
-            }
+            locale: 'es',
+            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' },
+            events: eventos,
+            eventColor: '#e83e8c',
+            eventClick: function(info) { window.location.href = '/atencion/' + info.event.id + '/'; },
+            height: 'auto',
+            contentHeight: 750
         });
-
-        // Renderiza el calendario
         calendar.render();
     });
 </script>

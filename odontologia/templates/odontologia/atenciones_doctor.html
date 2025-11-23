@@ -1,0 +1,78 @@
+{% extends 'odontologia/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'lista_doctores' %}" class="text-decoration-none text-muted mb-2 d-block"><i class="fas fa-arrow-left"></i> Volver a lista</a>
+        <h2 class="h4">Historial Clínico: Dr. {{ doctor_objetivo.user.first_name }} {{ doctor_objetivo.user.last_name }}</h2>
+    </div>
+    <div class="text-end">
+        <a href="{% url 'descargar_excel_doctor' pk=doctor_objetivo.pk %}" class="btn btn-success text-white mb-2 shadow-sm">
+            <i class="fas fa-file-excel me-2"></i> Descargar Reporte
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+        <form method="GET" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="fw-bold text-muted">Filtrar por RUT:</span>
+            </div>
+            <div class="col">
+                <input type="text" name="q" class="form-control form-control-sm" placeholder="Ej: 12345678-9" value="{{ busqueda }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Buscar</button>
+                {% if busqueda %}
+                    <a href="{% url 'atenciones_por_doctor' pk=doctor_objetivo.pk %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header card-header-pink d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-notes-medical me-2"></i>Registro de Atenciones</h5>
+        <span class="badge bg-light text-dark">{{ atenciones.count }} Resultados</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Fecha</th>
+                        <th>Hora</th>
+                        <th>Paciente</th>
+                        <th>RUT</th>
+                        <th>Motivo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for atencion in atenciones %}
+                    <tr>
+                        <td class="ps-4 fw-bold">{{ atencion.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ atencion.hora_atencion|time:"H:i" }}</td>
+                        <td>{{ atencion.paciente_nombre }} {{ atencion.paciente_apellido }}</td>
+                        <td>{{ atencion.paciente_rut }}</td>
+                        <td>{{ atencion.motivo_visita }}</td>
+                        <td>
+                            <a href="{% url 'detalle_atencion' pk=atencion.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">Ver Detalles</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fas fa-folder-open fa-2x mb-3 opacity-50"></i>
+                            <p>No hay atenciones registradas con ese criterio.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

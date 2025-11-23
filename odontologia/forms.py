@@ -1,209 +1,146 @@
 # odontologia/forms.py
 from django import forms
-from .models import Atencion, DetalleAtencion, Doctor, Examen # Importa todos los modelos necesarios
+from .models import Atencion, DetalleAtencion, Doctor
 from django.contrib.auth.models import User
-from django.utils import timezone
-import datetime
-# Importa los validadores necesarios
-from django.core.validators import MinValueValidator, MaxValueValidator
-import re # Para validación básica de RUT
+from django.core.exceptions import ValidationError
+import re 
+from itertools import cycle
 
 class AtencionForm(forms.ModelForm):
     class Meta:
         model = Atencion
-        # Campos actualizados
         fields = [
             'paciente_nombre', 'paciente_apellido', 'paciente_rut', 'paciente_edad',
             'paciente_sexo', 'paciente_email', 'paciente_celular',
             'fecha', 'hora_atencion', 'motivo_visita', 'metodo_pago'
         ]
         widgets = {
-            # --- SECCIÓN PACIENTE ---
-            'paciente_nombre': forms.TextInput(attrs={
-                'class': 'form-control',
-                'required': True
-            }),
-            'paciente_apellido': forms.TextInput(attrs={
-                'class': 'form-control',
-                'required': True
-            }),
-            'paciente_rut': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej: 11111111-K',
-                'required': True,
-                'pattern': r'^\d{7,8}-[\dkK]$',
-                'title': 'Formato RUT inválido. Debe tener 7 u 8 dígitos, sin puntos y con guion (Ej: 11111111-K).',
-                'minlength': '9',
-                'maxlength': '10'
-            }),
-            'paciente_edad': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '1',
-                'max': '120',
-                'title': 'La edad debe estar entre 1 y 120.'
-            }),
-            'paciente_sexo': forms.Select(attrs={'class': 'form-control', 'required': True}),
-            'paciente_email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'paciente@email.com',
-                'required': True,
-                'type': 'email'
-            }),
+            'paciente_nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombres'}),
+            'paciente_apellido': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apellidos'}),
+            'paciente_rut': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345678-9'}),
+            'paciente_edad': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '120'}),
+            'paciente_sexo': forms.Select(attrs={'class': 'form-select'}),
+            'paciente_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'nombre@ejemplo.com'}),
             'paciente_celular': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+569...'}),
-
-            # --- SECCIÓN ATENCIÓN ---
-            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'required': True}),
-            'hora_atencion': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control', 'required': True}),
-            'motivo_visita': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
-            'metodo_pago': forms.Select(attrs={'class': 'form-control', 'required': True}),
-        }
-        labels = {
-            'paciente_nombre': 'Nombre(s) Paciente',
-            'paciente_apellido': 'Apellido(s) Paciente',
-            'paciente_rut': 'RUT Paciente (sin puntos, con guion)',
-            'paciente_edad': 'Edad Paciente (1-120 años)',
-            'paciente_sexo': 'Sexo',
-            'paciente_email': 'Email',
-            'paciente_celular': 'Celular (9 dígitos, ej: 912345678)',
+            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'hora_atencion': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'motivo_visita': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Describe el motivo...'}),
+            'metodo_pago': forms.Select(attrs={'class': 'form-select'}),
         }
 
-    # Validación personalizada para la fecha (ayer hasta +7 días)
-    def clean_fecha(self):
-        fecha = self.cleaned_data.get('fecha')
-        if not fecha:
-            return fecha
-        hoy = timezone.localdate()
-        un_dia_atras = hoy - datetime.timedelta(days=1)
-        una_semana_despues = hoy + datetime.timedelta(days=7)
+    def clean(self):
+        """Validaciones cruzadas (Duplicidad e Identidad)."""
+        cleaned_data = super().clean()
+        rut = cleaned_data.get('paciente_rut')
+        fecha = cleaned_data.get('fecha')
+        hora = cleaned_data.get('hora_atencion')
+        nombre_nuevo = cleaned_data.get('paciente_nombre', '').strip()
+        apellido_nuevo = cleaned_data.get('paciente_apellido', '').strip()
 
-        if fecha < un_dia_atras:
-            raise forms.ValidationError("La fecha no puede ser anterior a ayer.")
-        if fecha > una_semana_despues:
-            raise forms.ValidationError("La fecha no puede ser más de una semana en el futuro.")
-        return fecha
+        # 1. VALIDACIÓN DE DUPLICIDAD DE HORARIO
+        if rut and fecha and hora:
+            coincidencias = Atencion.objects.filter(
+                paciente_rut=rut,
+                fecha=fecha,
+                hora_atencion=hora
+            ).exclude(pk=self.instance.pk)
 
-    # Validación de RUT (mínimo 7-8 dígitos + verificador)
+            if coincidencias.exists():
+                raise ValidationError(
+                    f"Error: El paciente con RUT {rut} ya tiene una atención agendada "
+                    f"exactamente el {fecha} a las {hora}."
+                )
+
+        # 2. VALIDACIÓN DE IDENTIDAD ÚNICA (TU PEDIDO)
+        if rut and nombre_nuevo and apellido_nuevo:
+            # Buscamos si este RUT ya existe en la base de datos (excluyendo la ficha actual si se está editando)
+            paciente_previo = Atencion.objects.filter(paciente_rut=rut).exclude(pk=self.instance.pk).first()
+
+            if paciente_previo:
+                # Comparamos nombres (ignorando mayúsculas/minúsculas)
+                nombre_registrado = paciente_previo.paciente_nombre.strip()
+                apellido_registrado = paciente_previo.paciente_apellido.strip()
+
+                if (nombre_nuevo.lower() != nombre_registrado.lower()) or \
+                   (apellido_nuevo.lower() != apellido_registrado.lower()):
+                    
+                    # Si los nombres no coinciden, lanzamos error
+                    raise ValidationError({
+                        'paciente_rut': f"Este RUT ya pertenece a {nombre_registrado} {apellido_registrado}. "
+                                        f"No puedes registrarlo como {nombre_nuevo} {apellido_nuevo}."
+                    })
+
+        return cleaned_data
+
     def clean_paciente_rut(self):
-        rut = self.cleaned_data.get('paciente_rut', '').strip().upper().replace('.', '')
-        if not re.fullmatch(r'^\d{7,8}-[\dkK]$', rut):
-             raise forms.ValidationError("Formato de RUT inválido. Use XXXXXXXX-X (sin puntos).")
+        """Valida el RUT chileno (Formato, Rango y Matemática)."""
+        rut = self.cleaned_data.get('paciente_rut')
+        
+        if not rut:
+            return rut
+
+        # Limpieza
+        rut = rut.strip().upper().replace('.', '').replace(' ', '')
+
+        # Formato
+        if not re.match(r'^\d{1,8}-[\dK]$', rut):
+            raise ValidationError("Formato inválido. Use el formato: 12345678-9")
+
+        cuerpo, dv_ingresado = rut.split('-')
+
+        # Rango Numérico
+        try:
+            cuerpo_num = int(cuerpo)
+        except ValueError:
+            raise ValidationError("El cuerpo del RUT debe ser numérico.")
+
+        if cuerpo_num < 1000000:
+            raise ValidationError("RUT inválido (número demasiado bajo).")
+        
+        if cuerpo_num >= 30000000:
+            raise ValidationError("RUT inválido (fuera del rango de personas naturales).")
+
+        # Algoritmo Módulo 11
+        reversed_digits = map(int, reversed(cuerpo))
+        factors = cycle(range(2, 8))
+        s = sum(d * f for d, f in zip(reversed_digits, factors))
+        res = (-s) % 11
+
+        if res == 10: dv_esperado = 'K'
+        else: dv_esperado = str(res)
+
+        if dv_ingresado != dv_esperado:
+            raise ValidationError("RUT inválido. El dígito verificador no corresponde.")
+
         return rut
 
-    # Validación de Edad (1-120)
-    def clean_paciente_edad(self):
-        edad = self.cleaned_data.get('paciente_edad')
-        if edad is not None and (edad < 1 or edad > 120):
-             raise forms.ValidationError("La edad debe estar entre 1 y 120 años.")
-        return edad
-    
-    # Validación de Email (requerido el @)
-    def clean_paciente_email(self):
-        email = self.cleaned_data.get('paciente_email')
-        if not email:
-            raise forms.ValidationError("El correo electrónico es requerido.")
-        if '@' not in email:
-            raise forms.ValidationError("El correo electrónico debe contener un '@'.")
-        return email
-
-    # Validación de Celular (opcional, pero si existe debe ser válido)
-    def clean_paciente_celular(self):
-        celular = self.cleaned_data.get('paciente_celular')
-        if not celular: # Si está vacío, es válido (campo opcional)
-            return celular 
-        celular = celular.strip()
-        if not celular.isdigit():
-            raise forms.ValidationError("El celular debe contener solo números.")
-        if not celular.startswith('9'):
-            raise forms.ValidationError("El celular debe comenzar con 9.")
-        if len(celular) != 9:
-            raise forms.ValidationError("El celular debe tener exactamente 9 dígitos.")
-        return celular
+# --- OTROS FORMULARIOS ---
 
 class DetalleAtencionForm(forms.ModelForm):
     class Meta:
         model = DetalleAtencion
         fields = ['especialidad', 'descripcion', 'valor']
         widgets = {
-            'especialidad': forms.Select(attrs={'class': 'form-control', 'required': True}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Detalles del tratamiento realizado...'}),
-            'valor': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01', 'placeholder': 'CLP', 'required': True}),
+            'especialidad': forms.Select(attrs={'class': 'form-select'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Detalle del procedimiento'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '$ 0'}),
         }
-        labels = {
-            'valor': 'Valor (CLP)',
-        }
-
-# --- Formularios de Perfil ---
 
 class UserUpdateForm(forms.ModelForm):
-    """Formulario para actualizar datos básicos del usuario."""
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    first_name = forms.CharField(label="Nombre", widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(label="Apellido", widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email']
-        labels = {
-            'first_name': 'Nombre(s)',
-            'last_name': 'Apellido(s)',
-            'email': 'Correo Electrónico',
-        }
-        widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-        }
 
 class DoctorProfileForm(forms.ModelForm):
-    """Formulario para actualizar datos específicos del perfil de Doctor."""
     class Meta:
         model = Doctor
         fields = ['rut', 'fecha_nacimiento', 'foto_perfil']
-        labels = {
-            'rut': 'RUT (sin puntos, con guion)',
-            'fecha_nacimiento': 'Fecha de Nacimiento (18-90 años)',
-            'foto_perfil': 'Foto de Perfil',
-        }
         widgets = {
-            # --- WIDGET RUT CORREGIDO ---
-            'rut': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej: 11111111-K',
-                'pattern': r'^\d{7,8}-[\dkK]$', # Regex para 7-8 dígitos + guion + digit/K
-                'title': 'Formato RUT inválido. Debe tener 7 u 8 dígitos, sin puntos y con guion (Ej: 11111111-K).',
-                'minlength': '9', # 1111111-K (9 chars)
-                'maxlength': '10' # 11111111-K (10 chars)
-            }),
-            # --- FIN CORRECCIÓN RUT ---
+            'rut': forms.TextInput(attrs={'class': 'form-control'}),
             'fecha_nacimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'foto_perfil': forms.FileInput(attrs={'class': 'form-control'}),
         }
-
-    # --- VALIDACIÓN DE FECHA DE NACIMIENTO CORREGIDA (18-90 AÑOS) ---
-    def clean_fecha_nacimiento(self):
-        fecha_nacimiento = self.cleaned_data.get('fecha_nacimiento')
-        if not fecha_nacimiento:
-            return fecha_nacimiento # Es opcional (null=True, blank=True en el modelo)
-
-        today = datetime.date.today()
-        # Fecha límite más tardía (para tener 18 años)
-        latest_bday = today.replace(year=today.year - 18)
-        # Fecha límite más temprana (para tener 90 años)
-        earliest_bday = today.replace(year=today.year - 90)
-
-        if fecha_nacimiento > latest_bday:
-            raise forms.ValidationError("El doctor debe tener al menos 18 años de edad.")
-        if fecha_nacimiento < earliest_bday:
-            raise forms.ValidationError("La edad máxima permitida es de 90 años.")
-        
-        return fecha_nacimiento
-    # --- FIN CORRECCIÓN FECHA ---
-
-    # --- VALIDACIÓN DE RUT AÑADIDA (IDÉNTICA A LA DE PACIENTE) ---
-    def clean_rut(self):
-        rut = self.cleaned_data.get('rut', '').strip().upper().replace('.', '')
-        if not rut: # El RUT es obligatorio en el modelo Doctor, así que validamos
-            raise forms.ValidationError("El RUT es requerido.")
-        
-        if not re.fullmatch(r'^\d{7,8}-[\dkK]$', rut):
-             raise forms.ValidationError("Formato de RUT inválido. Use XXXXXXXX-X (sin puntos).")
-        # Aquí podrías añadir una validación completa del dígito verificador
-        return rut
-    # --- FIN VALIDACIÓN RUT ---

@@ -29,4 +29,11 @@ urlpatterns = [
     
     path('atencion/<int:pk>/editar/', views.editar_atencion, name='editar_atencion'),
     path('atencion/<int:pk>/eliminar/', views.eliminar_atencion, name='eliminar_atencion'),
+
+    path('doctores/', views.lista_doctores, name='lista_doctores'),
+    path('doctores/<int:pk>/atenciones/', views.atenciones_por_doctor, name='atenciones_por_doctor'),
+
+    path('doctores/<int:pk>/excel/', views.descargar_excel_doctor, name='descargar_excel_doctor'),
+
+    path('atenciones/', views.lista_atenciones, name='lista_atenciones')
 ]

@@ -2,333 +2,246 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>{% if is_edit %}Editar Atención{% else %}Registrar Nueva Atención{% endif %} - Monfer Dental</title>
+    <title>{% if is_edit %}Editar Atención{% else %}Registrar Atención{% endif %} - Monfer Dental</title>
     {% load static %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* --- Variables de Tema --- */
+        /* --- VARIABLES DE ESTILO --- */
         :root {
             --bg-color: #f8f9fa; --text-color: #212529; --card-bg: #ffffff;
             --border-color: #dee2e6; --header-border: #dee2e6;
-            --pink-gradient: linear-gradient(to right, #FF69B4, #FFB6C1);
-            --pink-gradient-hover: linear-gradient(to right, #FFB6C1, #FF69B4);
-            --clock-display-bg: #f8f9fa;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --input-bg: #ffffff; --input-border: #ced4da; --input-text: #212529;
+            --section-bg: #f8f9fa;
         }
         [data-bs-theme="dark"] {
             --bg-color: #212529; --text-color: #dee2e6; --card-bg: #343a40;
             --border-color: #495057; --header-border: #495057;
-            --clock-display-bg: #343a40;
-
-            .card > .card-header.page-header {
-                background-color: var(--card-bg) !important;
-                color: var(--text-color) !important;
-                border-bottom-color: var(--border-color) !important;
-            }
-            .card > .card-header.page-header .text-muted,
-            .card > .card-header.page-header h1, .card > .card-header.page-header p {
-                color: var(--text-color) !important;
-            }
-            .form-control, .form-select {
-                background-color: #495057; color: var(--text-color); border-color: #6c757d;
-            }
-            .form-control::placeholder { color: #adb5bd; }
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --input-bg: #2b3035; --input-border: #495057; --input-text: #e9ecef;
+            --section-bg: #2b3035;
         }
-        /* --- Estilos Generales --- */
-        body {
-            background-color: var(--bg-color); color: var(--text-color);
-            font-family: 'Poppins', sans-serif; transition: background-color 0.3s, color 0.3s;
-            padding-top: 20px; padding-bottom: 20px;
+
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            font-family: 'Poppins', sans-serif; 
+            transition: background 0.3s, color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-        .card { background-color: var(--card-bg); border-color: var(--border-color); transition: background-color 0.3s, border-color 0.3s; }
-        .card-header { border-bottom-color: var(--border-color); transition: border-color 0.3s; }
-        .card-header h2, .card-header p, .card-header h1 { color: var(--text-color); transition: color 0.3s; }
-        label { color: var(--text-color); transition: color 0.3s; }
-        .form-control, .form-select { border-color: var(--border-color); }
-        .text-muted { color: #6c757d !important; }
-        [data-bs-theme="dark"] .text-muted { color: #adb5bd !important; }
 
-        .container { max-width: 900px; }
-        legend { font-size: 1.1em; font-weight: 500; margin-bottom: 1rem; padding: 0.5rem 1rem; border-radius: 0.25rem;}
-        .invalid-feedback { display: block; }
-        .is-invalid { border-color: #dc3545 !important; }
-        textarea.form-control { min-height: 100px; }
-
-        /* --- Estilo Encabezado Rosa Degradado --- */
-        .card-header-pink, legend.bg-pink-gradient {
-            background: var(--pink-gradient); color: white !important; border-bottom: none;
+        /* Estilos de la página */
+        .focus-header { text-align: center; padding: 20px 0; margin-bottom: 20px; }
+        .focus-logo { height: 80px; margin-bottom: 15px; }
+        
+        .card { background-color: var(--card-bg); border-color: var(--border-color); border-radius: 15px; box-shadow: 0 10px 30px var(--shadow-color); }
+        .card-header-pink { background: linear-gradient(to right, #FF69B4, #FFB6C1); color: white; border-bottom: none; border-radius: 15px 15px 0 0 !important; }
+        
+        /* Inputs */
+        .form-control, .form-select { background-color: var(--input-bg); border-color: var(--input-border); color: var(--input-text); }
+        .form-control:focus, .form-select:focus { background-color: var(--input-bg); color: var(--input-text); border-color: #e83e8c; box-shadow: 0 0 0 0.25rem rgba(232, 62, 140, 0.25); }
+        .bg-light-custom { background-color: var(--section-bg) !important; border-radius: 10px; border: 1px solid var(--border-color); }
+        
+        /* Estilo para el mensaje de error bajo el input */
+        .error-feedback {
+            color: #dc3545;
+            font-size: 0.85em;
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
         }
-        .card-header-pink h2, .card-header-pink p, legend.bg-pink-gradient { color: white !important; }
-
-        /* --- Estilo Botón Rosa Degradado --- */
-        .btn-pink-gradient { background: var(--pink-gradient); border: none; color: white; }
-        .btn-pink-gradient:hover { background: var(--pink-gradient-hover); opacity: 0.9; color: white; }
-        .btn-pink-gradient i { margin-right: 8px; }
-
-        /* --- Cabecera Principal --- */
-        .page-header {
-            border-bottom: 1px solid var(--header-border);
-            padding-bottom: 15px; margin-bottom: 25px;
-            display: flex; align-items: center; position: relative;
-        }
-        .header-center-content { flex-grow: 1; text-align: center; margin: 0 50px; }
-        .header-logo-top { display: block; height: 50px; margin: 0 auto 10px auto; }
-        .page-header .header-title h1 { margin: 0; font-size: 1.3rem; }
-        .header-controls { display: flex; align-items: center; margin-left: auto; }
-        .clock-display { background-color: var(--clock-display-bg, #f8f9fa); padding: 5px 10px; border-radius: 5px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); transition: background-color 0.3s; }
-        [data-bs-theme="dark"] .clock-display { box-shadow: inset 0 1px 2px rgba(255,255,255,0.1); }
-        .clock { font-size: 1.1em; font-weight: bold; color: var(--text-color); white-space: nowrap; transition: color 0.3s; }
-
-        /* --- Interruptor de Tema --- */
-        .theme-switch-wrapper { display: flex; align-items: center; margin-left: 1rem; }
-        .theme-switch { display: inline-block; height: 24px; position: relative; width: 48px; }
-        .theme-switch input { display: none; }
-        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 24px; }
-        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 16px; left: 4px; position: absolute; transition: .4s; width: 16px; border-radius: 50%; }
-        input:checked + .slider { background-color: #e83e8c; }
-        input:checked + .slider:before { transform: translateX(24px); }
-
-        /* Estilo para ocultar secciones */
-        .form-section { display: none; }
-        .form-section.active { display: block; }
+        .error-feedback i { margin-right: 5px; }
+        .is-invalid { border-color: #dc3545 !important; background-image: none !important; }
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body data-bs-theme="light">
-    <div class="container">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white page-header">
-                <div class="header-center-content">
-                    <img src="{% static 'images/dental_v_logo.png' %}" alt="Logo Dental-V" class="header-logo-top">
-                    <div class="header-title">
-                        <h1 class="h4">{% if is_edit %}Editar Atención{% else %}Registrar Nueva Atención{% endif %}</h1>
-                    </div>
-                </div>
-                <div class="header-controls">
-                    <div class="clock-display me-3">
-                         <span class="clock">
-                            <span id="fecha-actual"></span> | <span id="reloj-actual">--:--</span>
-                        </span>
-                    </div>
-                    <div class="theme-switch-wrapper">
-                        <i class="fas fa-sun me-1"></i>
-                        <label class="theme-switch" for="themeSwitch">
-                            <input type="checkbox" id="themeSwitch">
-                            <span class="slider round"></span>
-                        </label>
-                        <i class="fas fa-moon ms-1"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                 <p class="mb-3 text-muted">Registrando como: <strong>Dr. {{ user.first_name }} {{ user.last_name }}</strong></p>
 
-                <form method="post">
-                    {% csrf_token %}
+    <div class="container pb-5">
+        
+        <div class="focus-header mt-4">
+            <img src="{% static 'images/dental_v_logo.png' %}" alt="Logo Monfer" class="focus-logo">
+            <h1 class="h3 fw-bold">{% if is_edit %}Editando Atención{% else %}Nueva Atención Clínica{% endif %}</h1>
+            <p class="text-muted">Completa los datos del paciente y el tratamiento.</p>
+        </div>
 
-                    {% if form.non_field_errors %} <div class="alert alert-danger"> {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %} </div> {% endif %}
-                    {% if detalle_formset.non_form_errors %} <div class="alert alert-danger"><strong>Errores en Detalles:</strong> {% for error in detalle_formset.non_form_errors %}<p>{{ error }}</p>{% endfor %} </div> {% endif %}
-                    {# Eliminado examen_formset.non_form_errors #}
-
-                    <div id="step-1" class="form-section active">
-                        <fieldset class="mb-4 p-3 border rounded">
-                            <legend class="bg-pink-gradient">Datos del Paciente</legend>
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6 field-{{ form.paciente_nombre.name }}">
-                                    <label for="{{ form.paciente_nombre.id_for_label }}" class="form-label">{{ form.paciente_nombre.label }}</label>
-                                    {{ form.paciente_nombre }}
-                                    {% if form.paciente_nombre.errors %}<div class="invalid-feedback">{{ form.paciente_nombre.errors|first }}</div>{% endif %}
-                                </div>
-                                <div class="col-md-6 field-{{ form.paciente_apellido.name }}">
-                                    <label for="{{ form.paciente_apellido.id_for_label }}" class="form-label">{{ form.paciente_apellido.label }}</label>
-                                    {{ form.paciente_apellido }}
-                                    {% if form.paciente_apellido.errors %}<div class="invalid-feedback">{{ form.paciente_apellido.errors|first }}</div>{% endif %}
-                                </div>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-6 field-{{ form.paciente_rut.name }}">
-                                    <label for="{{ form.paciente_rut.id_for_label }}" class="form-label">{{ form.paciente_rut.label }}</label>
-                                    {{ form.paciente_rut }}
-                                    {% if form.paciente_rut.errors %}<div class="invalid-feedback">{{ form.paciente_rut.errors|first }}</div>{% endif %}
-                                </div>
-                                <div class="col-md-6 field-{{ form.paciente_edad.name }}">
-                                    <label for="{{ form.paciente_edad.id_for_label }}" class="form-label">{{ form.paciente_edad.label }}</label>
-                                    {{ form.paciente_edad }}
-                                    {% if form.paciente_edad.errors %}<div class="invalid-feedback">{{ form.paciente_edad.errors|first }}</div>{% endif %}
-                                </div>
-                            </div>
-                            <div class="row g-3 mt-1">
-                                 <div class="col-md-4 field-{{ form.paciente_sexo.name }}">
-                                    <label for="{{ form.paciente_sexo.id_for_label }}" class="form-label">{{ form.paciente_sexo.label }}</label>
-                                    {{ form.paciente_sexo }}
-                                    {% if form.paciente_sexo.errors %}<div class="invalid-feedback">{{ form.paciente_sexo.errors|first }}</div>{% endif %}
-                                </div>
-                                <div class="col-md-4 field-{{ form.paciente_email.name }}">
-                                    <label for="{{ form.paciente_email.id_for_label }}" class="form-label">{{ form.paciente_email.label }}</label>
-                                    {{ form.paciente_email }}
-                                    {% if form.paciente_email.errors %}<div class="invalid-feedback">{{ form.paciente_email.errors|first }}</div>{% endif %}
-                                </div>
-                                 <div class="col-md-4 field-{{ form.paciente_celular.name }}">
-                                    <label for="{{ form.paciente_celular.id_for_label }}" class="form-label">{{ form.paciente_celular.label }}</label>
-                                    {{ form.paciente_celular }}
-                                    {% if form.paciente_celular.errors %}<div class="invalid-feedback">{{ form.paciente_celular.errors|first }}</div>{% endif %}
-                                </div>
-                            </div>
-                        </fieldset>
-                        <div class="d-flex justify-content-end">
-                            <a href="{% url 'dashboard' %}" class="btn btn-secondary me-auto">Cancelar</a> {# Botón Cancelar en la primera página #}
-                            <button type="button" class="btn btn-primary" onclick="nextStep(1, 2)">Siguiente <i class="fas fa-arrow-right ms-1"></i></button>
-                        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card border-0">
+                    <div class="card-header card-header-pink py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-file-medical me-2"></i>Ficha de Ingreso</h5>
+                        <a href="javascript:window.close();" class="btn btn-sm btn-light text-danger fw-bold shadow-sm" style="border-radius: 20px;">
+                            <i class="fas fa-times me-1"></i> Cerrar
+                        </a>
                     </div>
-
-                    <div id="step-2" class="form-section">
-                        <fieldset class="mb-4 p-3 border rounded">
-                            <legend class="bg-pink-gradient">Datos de la Atención</legend>
-                            <div class="row g-3">
-                                 <div class="col-md-6 field-{{ form.fecha.name }}">
-                                    <label for="{{ form.fecha.id_for_label }}" class="form-label">{{ form.fecha.label }}</label>
-                                    {{ form.fecha }}
-                                    {% if form.fecha.errors %}<div class="invalid-feedback">{{ form.fecha.errors|first }}</div>{% endif %}
-                                </div>
-                                <div class="col-md-6 field-{{ form.hora_atencion.name }}">
-                                    <label for="{{ form.hora_atencion.id_for_label }}" class="form-label">{{ form.hora_atencion.label }}</label>
-                                    {{ form.hora_atencion }}
-                                    {% if form.hora_atencion.errors %}<div class="invalid-feedback">{{ form.hora_atencion.errors|first }}</div>{% endif %}
-                                </div>
-                                <div class="col-md-6 field-{{ form.motivo_visita.name }}">
-                                    <label for="{{ form.motivo_visita.id_for_label }}" class="form-label">{{ form.motivo_visita.label }}</label>
-                                    {{ form.motivo_visita }}
-                                    {% if form.motivo_visita.errors %}<div class="invalid-feedback">{{ form.motivo_visita.errors|first }}</div>{% endif %}
-                                </div>
-                                 <div class="col-md-6 field-{{ form.metodo_pago.name }}">
-                                    <label for="{{ form.metodo_pago.id_for_label }}" class="form-label">{{ form.metodo_pago.label }}</label>
-                                    {{ form.metodo_pago }}
-                                    {% if form.metodo_pago.errors %}<div class="invalid-feedback">{{ form.metodo_pago.errors|first }}</div>{% endif %}
-                                </div>
-                            </div>
-                        </fieldset>
-                        <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-secondary" onclick="prevStep(2, 1)"><i class="fas fa-arrow-left me-1"></i> Anterior</button>
-                            <button type="button" class="btn btn-primary" onclick="nextStep(2, 3)">Siguiente <i class="fas fa-arrow-right ms-1"></i></button>
-                        </div>
-                    </div>
-
-                    <div id="step-3" class="form-section">
-                        <fieldset class="mb-4 p-3 border rounded">
-                            <legend class="bg-pink-gradient">Detalles del Tratamiento</legend>
-                            {{ detalle_formset.management_form }}
-                            {% for formset_form in detalle_formset %}
-                                <div class="mb-3 p-2 border-bottom {% if forloop.first %}border-top{% endif %}">
-                                    {{ formset_form.id }}
-                                    <div class="row g-3">
-                                        <div class="col-md-4 field-{{ formset_form.especialidad.html_name }}">
-                                            <label for="{{ formset_form.especialidad.id_for_label }}" class="form-label">{{ formset_form.especialidad.label }}</label>
-                                            {{ formset_form.especialidad }}
-                                            {% if formset_form.especialidad.errors %}<div class="invalid-feedback">{{ formset_form.especialidad.errors|first }}</div>{% endif %}
-                                        </div>
-                                        <div class="col-md-5 field-{{ formset_form.descripcion.html_name }}">
-                                            <label for="{{ formset_form.descripcion.id_for_label }}" class="form-label">{{ formset_form.descripcion.label }}</label>
-                                            {{ formset_form.descripcion }}
-                                            {% if formset_form.descripcion.errors %}<div class="invalid-feedback">{{ formset_form.descripcion.errors|first }}</div>{% endif %}
-                                        </div>
-                                         <div class="col-md-3 field-{{ formset_form.valor.html_name }}">
-                                            <label for="{{ formset_form.valor.id_for_label }}" class="form-label">{{ formset_form.valor.label }}</label>
-                                            {{ formset_form.valor }}
-                                            {% if formset_form.valor.errors %}<div class="invalid-feedback">{{ formset_form.valor.errors|first }}</div>{% endif %}
-                                        </div>
-                                    </div>
-                                    {% if is_edit and formset_form.instance.pk %}
-                                        <div class="form-check form-check-inline mt-2">
-                                            {{ formset_form.DELETE }}
-                                            <label class="form-check-label text-danger" for="{{ formset_form.DELETE.id_for_label }}">Eliminar este tratamiento</label>
-                                        </div>
-                                    {% endif %}
-                                    {% if formset_form.non_field_errors %} <div class="alert alert-danger mt-2 py-1"> {% for error in formset_form.non_field_errors %}<small>{{ error }}</small>{% endfor %} </div> {% endif %}
-                                </div>
-                            {% endfor %}
-                             <small class="form-text text-muted">Puedes añadir más tratamientos guardando la atención y luego editándola.</small>
-                        </fieldset>
+                    
+                    <div class="card-body p-4">
                         
-                        <hr class="my-4">
-                        <div class="d-grid gap-2 d-md-flex justify-content-between">
-                            <button type="button" class="btn btn-secondary" onclick="prevStep(3, 2)"><i class="fas fa-arrow-left me-1"></i> Anterior</button>
-                            <button type="submit" class="btn btn-success btn-lg">{% if is_edit %}Actualizar Atención{% else %}Guardar Atención{% endif %}</button>
-                            <a href="{% url 'dashboard' %}" class="btn btn-outline-danger">Cancelar</a>
-                        </div>
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger border-0 shadow-sm mb-4">
+                                <h6 class="alert-heading fw-bold"><i class="fas fa-exclamation-circle me-2"></i>Atención:</h6>
+                                <ul class="mb-0 ps-3">
+                                    {% for error in form.non_field_errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            
+                            <h6 class="text-uppercase small fw-bold mb-3 border-bottom pb-2" style="color: #e83e8c;">1. Datos del Paciente</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Nombre</label>
+                                    {{ form.paciente_nombre }}
+                                    {% if form.paciente_nombre.errors %}
+                                        <div class="error-feedback"><i class="fas fa-exclamation-circle"></i> {{ form.paciente_nombre.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Apellido</label>
+                                    {{ form.paciente_apellido }}
+                                    {% if form.paciente_apellido.errors %}
+                                        <div class="error-feedback"><i class="fas fa-exclamation-circle"></i> {{ form.paciente_apellido.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">RUT</label>
+                                    {{ form.paciente_rut }}
+                                    {% if form.paciente_rut.errors %}
+                                        <div class="error-feedback fw-bold"><i class="fas fa-exclamation-triangle"></i> {{ form.paciente_rut.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Edad</label>
+                                    {{ form.paciente_edad }}
+                                    {% if form.paciente_edad.errors %}
+                                        <div class="error-feedback">{{ form.paciente_edad.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Sexo</label>
+                                    {{ form.paciente_sexo }}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Teléfono</label>
+                                    {{ form.paciente_celular }}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Email</label>
+                                    {{ form.paciente_email }}
+                                </div>
+                            </div>
+
+                            <h6 class="text-uppercase small fw-bold mb-3 border-bottom pb-2 mt-4" style="color: #e83e8c;">2. Detalles de la Cita</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha</label>
+                                    {{ form.fecha }}
+                                    {% if form.fecha.errors %}
+                                        <div class="error-feedback">{{ form.fecha.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Hora</label>
+                                    {{ form.hora_atencion }}
+                                    {% if form.hora_atencion.errors %}
+                                        <div class="error-feedback">{{ form.hora_atencion.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Método de Pago</label>
+                                    {{ form.metodo_pago }}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Motivo de Consulta</label>
+                                    {{ form.motivo_visita }}
+                                </div>
+                            </div>
+
+                            <h6 class="text-uppercase small fw-bold mb-3 border-bottom pb-2 mt-4" style="color: #e83e8c;">3. Tratamientos y Costos</h6>
+                            
+                            {% if detalle_formset.non_form_errors %}
+                                <div class="alert alert-danger">{{ detalle_formset.non_form_errors }}</div>
+                            {% endif %}
+
+                            <div class="table-responsive mb-4 bg-light-custom p-3">
+                                {{ detalle_formset.management_form }}
+                                <table class="table table-borderless mb-0 align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 30%;">Tratamiento</th>
+                                            <th style="width: 40%;">Descripción</th>
+                                            <th style="width: 20%;">Costo ($)</th>
+                                            {% if is_edit %}<th style="width: 10%;">Acción</th>{% endif %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for form in detalle_formset %}
+                                            <tr>
+                                                <td>
+                                                    {{ form.especialidad }} {{ form.id }}
+                                                    {% if form.especialidad.errors %}
+                                                        <div class="error-feedback small">{{ form.especialidad.errors.0 }}</div>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {{ form.descripcion }}
+                                                </td>
+                                                <td>
+                                                    {{ form.valor }}
+                                                    {% if form.valor.errors %}
+                                                        <div class="error-feedback small">{{ form.valor.errors.0 }}</div>
+                                                    {% endif %}
+                                                </td>
+                                                {% if is_edit %}
+                                                    <td class="text-center">
+                                                        {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                                                    </td>
+                                                {% endif %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="d-flex justify-content-end gap-3">
+                                <a href="javascript:window.close();" class="btn btn-outline-secondary px-4">Cancelar</a>
+                                <button type="submit" class="btn btn-success px-5 py-2 shadow-sm fw-bold">
+                                    <i class="fas fa-check-circle me-2"></i> 
+                                    {% if is_edit %}Guardar Cambios{% else %}Finalizar Registro{% endif %}
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- Lógica del Wizard (Siguiente/Anterior) CON VALIDACIÓN ---
-        
-        // Función para validar una sección específica del formulario
-        function validateStep(stepId) {
-            const stepDiv = document.getElementById(stepId);
-            // CORREGIDO: Busca TODOS los campos visibles (no solo los :required)
-            const inputs = stepDiv.querySelectorAll('input:not([type="hidden"]):not([type="button"]):not([type="submit"]):not([disabled]), select:not([disabled]), textarea:not([disabled])');
-            let allValid = true;
-
-            for (const input of inputs) {
-                // Usa la API de validación del navegador
-                if (!input.checkValidity()) {
-                    allValid = false;
-                    // Muestra el mensaje de error nativo del navegador (el "globo")
-                    input.reportValidity();
-                    break; // Detente en el primer error
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.setAttribute('data-bs-theme', savedTheme);
+            
+            // Añadir clase de error visual a los inputs inválidos
+            const inputsConError = document.querySelectorAll('.error-feedback');
+            inputsConError.forEach(errorDiv => {
+                const input = errorDiv.previousElementSibling;
+                if (input) {
+                    input.classList.add('is-invalid');
                 }
-            }
-            return allValid;
-        }
-
-        function nextStep(currentStepNum, nextStepNum) {
-            // Valida la sección actual ANTES de avanzar
-            if (validateStep('step-' + currentStepNum)) {
-                document.getElementById('step-' + currentStepNum).classList.remove('active');
-                document.getElementById('step-' + nextStepNum).classList.add('active');
-                window.scrollTo(0, 0); // Sube al inicio de la página
-            }
-        }
-
-        function prevStep(currentStepNum, prevStepNum) {
-            // No se necesita validación para ir hacia atrás
-            document.getElementById('step-' + currentStepNum).classList.remove('active');
-            document.getElementById('step-' + prevStepNum).classList.add('active');
-            window.scrollTo(0, 0); // Sube al inicio de la página
-        }
-
-        // --- Lógica del Reloj y Fecha (HH:MM) ---
-        function actualizarRelojYFechaForm() {
-             const ahora = new Date();
-             const opcionesHora = { hour: '2-digit', minute: '2-digit', hour12: false };
-             const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
-             const horaFormateada = ahora.toLocaleTimeString('es-CL', opcionesHora);
-             const fechaFormateada = ahora.toLocaleDateString('es-CL', opcionesFecha);
-             const relojEl = document.getElementById('reloj-actual');
-             const fechaEl = document.getElementById('fecha-actual');
-             if (relojEl) relojEl.textContent = horaFormateada;
-             if (fechaEl) fechaEl.textContent = fechaFormateada;
-        }
-        actualizarRelojYFechaForm();
-        setInterval(actualizarRelojYFechaForm, 1000);
-
-        // --- Lógica para Cambiar Tema (Claro/Oscuro) ---
-        const themeSwitch = document.getElementById('themeSwitch');
-        function setTheme(theme) {
-            document.body.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('theme', theme);
-            if (themeSwitch) { themeSwitch.checked = (theme === 'dark'); }
-        }
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        setTheme(currentTheme);
-        if(themeSwitch){
-            themeSwitch.addEventListener('change', function(e) { setTheme(e.target.checked ? 'dark' : 'light'); });
-        }
+            });
+        });
     </script>
+
 </body>
 </html>

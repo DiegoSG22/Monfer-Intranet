@@ -1,273 +1,100 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Panel del Doctor - Monfer Dental</title>
-    {% load static %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* --- Variables de Tema --- */
-        :root {
-            --bg-color: #f8f9fa; --text-color: #212529; --card-bg: #ffffff;
-            --border-color: #dee2e6; --sidebar-bg: #ffffff; --sidebar-text: #e83e8c;
-            --sidebar-hover-bg: #f8f9fa; --sidebar-hover-text: #d63384; --sidebar-active-bg: #e83e8c;
-            --sidebar-active-text: #ffffff; --sidebar-border: #e9ecef; --header-border: #dee2e6;
-            --shadow-color: rgba(0, 0, 0, 0.1); --clock-display-bg: #f8f9fa;
-        }
-        [data-bs-theme="dark"] {
-            --bg-color: #212529; --text-color: #dee2e6; --card-bg: #343a40;
-            --border-color: #495057; --sidebar-bg: #2b3035; --sidebar-text: #adb5bd;
-            --sidebar-hover-bg: #495057; --sidebar-hover-text: #ffffff; --sidebar-active-bg: #e83e8c;
-            --sidebar-active-text: #ffffff; --sidebar-border: #495057; --header-border: #495057;
-            --shadow-color: rgba(255, 255, 255, 0.05); --clock-display-bg: #343a40;
-        }
-        /* --- Estilos Generales --- */
-        body { display: flex; min-height: 100vh; background-color: var(--bg-color); color: var(--text-color); transition: background-color 0.3s, color 0.3s; font-family: 'Poppins', sans-serif; }
-        .card { background-color: var(--card-bg); border-color: var(--border-color); transition: background-color 0.3s, border-color 0.3s; }
-        .card-header, .page-header { border-bottom-color: var(--border-color); transition: border-color 0.3s; }
-        .card-header h2, .card-header h5, .card-title, .h5, .h4, h1.h4 { color: var(--text-color); transition: color 0.3s; }
-        .text-muted { color: #6c757d !important; }
-        [data-bs-theme="dark"] .text-muted { color: #adb5bd !important; }
+{% extends 'odontologia/base.html' %}
 
-        /* --- Estilos de la Barra Lateral --- */
-        .sidebar { width: 250px; background-color: var(--sidebar-bg); color: var(--sidebar-text); padding: 0; position: fixed; top: 0; bottom: 0; left: 0; transition: margin-left 0.3s, box-shadow 0.3s; border-right: 1px solid var(--sidebar-border); box-shadow: 3px 0 10px -2px var(--shadow-color); z-index: 1000; display: flex; flex-direction: column; }
-        .sidebar.collapsed { margin-left: -250px; box-shadow: none; }
-        .sidebar-brand { padding: 1rem 1.25rem; text-align: center; border-bottom: 1px solid var(--sidebar-border); margin-bottom: 1rem; }
-        .sidebar-brand .profile-pic { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 0.5rem; border: 2px solid var(--sidebar-text); }
-        [data-bs-theme="dark"] .sidebar-brand .profile-pic { border-color: var(--sidebar-active-bg); }
-        .sidebar-brand h5 { margin: 0; word-break: break-word; font-size: 1rem; color: var(--sidebar-text); }
-        [data-bs-theme="dark"] .sidebar-brand h5 { color: var(--sidebar-hover-text); }
-        .sidebar .nav-link { color: var(--sidebar-text); padding: 10px 15px; display: flex; align-items: center; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sidebar .nav-link:hover { color: var(--sidebar-hover-text); background-color: var(--sidebar-hover-bg); }
-        .sidebar .nav-link.active { color: var(--sidebar-active-text); background-color: var(--sidebar-active-bg); }
-        .sidebar .nav-link i { margin-right: 10px; width: 20px; text-align: center; flex-shrink: 0; }
-        .sidebar-footer { padding: 10px 15px; margin-top: auto; border-top: 1px solid var(--sidebar-border); }
-        .sidebar-footer .logout-form button { background: none; border: none; padding: 10px 0; color: #dc3545; text-decoration: none; cursor: pointer; display: block; font: inherit; width: 100%; text-align: left; }
-        .sidebar-footer .logout-form button:hover { color: #fff; background-color: #dc3545; }
-        [data-bs-theme="dark"] .sidebar-footer .logout-form button { color: #f8d7da; }
-        [data-bs-theme="dark"] .sidebar-footer .logout-form button:hover { color: #fff; background-color: #bd2130; }
+{% block content %}
+<h2 class="h5 mb-4">
+    {{ saludo }}, 
+    {% if es_admin %}
+        <span class="text-primary fw-bold">{{ nombre_doctor }}</span> (Vista Global)
+    {% else %}
+        Dr. {{ nombre_doctor }}!
+    {% endif %}
+</h2>
 
-        /* --- Estilos del Contenido Principal --- */
-        .main-content { margin-left: 250px; padding: 20px; width: calc(100% - 250px); transition: margin-left 0.3s; }
-        .main-content.sidebar-collapsed { margin-left: 0; width: 100%; }
-        .page-header { border-bottom: 1px solid var(--header-border); padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; position: relative; }
-        .header-center-content { flex-grow: 1; text-align: center; margin: 0 50px; }
-        .header-logo-top { display: block; height: 100px; /* <-- LOGO MÁS GRANDE */ margin: 0 auto 10px auto; }
-        .page-header .header-title h1 { margin: 0; font-size: 1.3rem; }
-        .header-controls { display: flex; align-items: center; margin-left: auto; }
-        .clock-display { background-color: var(--clock-display-bg, #f8f9fa); padding: 5px 10px; border-radius: 5px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); transition: background-color 0.3s; }
-        [data-bs-theme="dark"] .clock-display { box-shadow: inset 0 1px 2px rgba(255,255,255,0.1); }
-        .clock { font-size: 1.1em; font-weight: bold; color: var(--text-color); white-space: nowrap; transition: color 0.3s; }
-        #sidebarToggle { background: none; border: none; font-size: 1.5rem; color: var(--text-color); padding: 0 0.75rem; line-height: 1; }
-        [data-bs-theme="dark"] #sidebarToggle { color: var(--sidebar-hover-text); }
-
-        /* --- Interruptor de Tema --- */
-        .theme-switch-wrapper { display: flex; align-items: center; margin-left: 1rem; }
-        .theme-switch { display: inline-block; height: 24px; position: relative; width: 48px; }
-        .theme-switch input { display: none; }
-        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 24px; }
-        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 16px; left: 4px; position: absolute; transition: .4s; width: 16px; border-radius: 50%; }
-        input:checked + .slider { background-color: #e83e8c; }
-        input:checked + .slider:before { transform: translateX(24px); }
-
-        /* --- Estilo Botón Rosa Degradado --- */
-        .btn-pink-gradient { background: linear-gradient(to right, #FF69B4, #FFB6C1); border: none; color: white; padding: 10px 20px; font-size: 1.1em; }
-        .btn-pink-gradient:hover { background: linear-gradient(to right, #FFB6C1, #FF69B4); opacity: 0.9; color: white; }
-        .btn-pink-gradient i { margin-right: 8px; }
-
-        /* --- Estilo Encabezado Rosa Degradado --- */
-        .card-header-pink { background: linear-gradient(to right, #FF69B4, #FFB6C1); color: white; border-bottom: none; }
-        .card-header-pink h4 { color: white; }
-
-    </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    {% block extra_head %}{% endblock %}
-</head>
-<body data-bs-theme="light">
-    <div class="sidebar d-flex flex-column">
-        <div class="sidebar-brand">
-             <img src="{{ doctor_profile_pic }}" alt="Foto de perfil del Dr. {{ nombre_doctor }}" class="profile-pic">
-             <h5>Dr. {{ nombre_doctor }}</h5>
-        </div>
-        <ul class="nav nav-pills flex-column">
-            <li class="nav-item">
-                <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-current="page"><i class="fas fa-tachometer-alt"></i> Panel Principal</a>
-            </li>
-            <li><a href="{% url 'ver_perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_perfil' or request.resolver_match.url_name == 'editar_perfil' %}active{% endif %}"><i class="fas fa-user-circle"></i> Mi Perfil</a></li>
-            <li><a href="{% url 'ver_calendario' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_calendario' %}active{% endif %}"><i class="fas fa-calendar-alt"></i> Calendario/Atenciones</a></li>
-            <li><a href="#" class="nav-link"><i class="fas fa-envelope"></i> Correo (Próximamente)</a></li>
-        </ul>
-        <div class="sidebar-footer logout-form">
-             <form action="{% url 'logout' %}" method="post">
-                 {% csrf_token %}
-                 <button type="submit" class="nav-link">
-                     <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                 </button>
-             </form>
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100" style="border-left: 5px solid #e83e8c;">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Pacientes Hoy</h6>
+                <h3 class="mb-0">{{ total_pacientes_hoy }}</h3>
+                <i class="fas fa-user-injured position-absolute top-0 end-0 m-3 fs-2 text-primary opacity-25"></i>
+            </div>
         </div>
     </div>
-
-    <div class="main-content">
-        <div class="page-header">
-            <button id="sidebarToggle" title="Ocultar/Mostrar menú"><i class="fas fa-bars"></i></button>
-            <div class="header-center-content">
-                <img src="{% static 'images/dental_v_logo.png' %}" alt="Logo Dental-V" class="header-logo-top">
-                <div class="header-title">
-                    <h1 class="h4">Intranet Centro Odontologico Monfer</h1>
-                </div>
+    <div class="col-md-4">
+        <div class="card h-100" style="border-left: 5px solid #28a745;">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Atenciones Totales</h6>
+                <h3 class="mb-0">{{ atenciones_realizadas }}</h3>
+                <i class="fas fa-briefcase-medical position-absolute top-0 end-0 m-3 fs-2 text-success opacity-25"></i>
             </div>
-            <div class="header-controls">
-                <div class="clock-display me-3">
-                    <span class="clock">
-                        <span id="fecha"></span> | <span id="reloj">--:--</span>
-                    </span>
-                </div>
-                <div class="theme-switch-wrapper">
-                    <i class="fas fa-sun me-1"></i>
-                    <label class="theme-switch" for="themeSwitch">
-                        <input type="checkbox" id="themeSwitch">
-                        <span class="slider round"></span>
-                    </label>
-                    <i class="fas fa-moon ms-1"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100" style="border-left: 5px solid #17a2b8;">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Acción Rápida</h6>
+                {% if not es_admin %}
+                    <a href="{% url 'registrar_atencion' %}" target="_blank" class="btn btn-sm btn-outline-primary stretched-link">Nuevo Paciente</a>
+                {% else %}
+                    <a href="{% url 'ver_calendario' %}" class="btn btn-sm btn-outline-info stretched-link">Ver Agenda</a>
+                {% endif %}
+                <i class="fas fa-bolt position-absolute top-0 end-0 m-3 fs-2 text-info opacity-25"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    {% if not es_admin %}
+    <div class="col-md-5 mb-4">
+        <a href="{% url 'registrar_atencion' %}" target="_blank" class="btn btn-pink-gradient btn-lg w-100 py-5 shadow">
+            <div class="d-flex flex-column align-items-center">
+                <i class="fas fa-plus-circle fa-3x mb-3"></i>
+                <span>Registrar Nueva Atención</span>
+            </div>
+        </a>
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-info-circle me-2"></i>Estado del Día</h5>
+                <p class="text-muted">Tienes <strong>{{ total_pacientes_hoy }}</strong> pacientes hoy.</p>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-pink" style="width: 70%; background-color: #e83e8c;"></div>
                 </div>
             </div>
         </div>
+    </div>
+    {% endif %}
 
-        {% block main_content_body %}
-            {# Contenido original del dashboard: #}
-            <h2 class="h5 mb-4">{{ saludo }}, Dr. {{ nombre_doctor }}!</h2>
-
-            {# Este bloque ahora está vacío porque los mensajes se manejan vía JS/Toasts #}
-
-            <div class="row mt-4">
-                <div class="col-md-6 mb-4">
-                    <a href="{% url 'registrar_atencion' %}" class="btn btn-pink-gradient btn-lg w-100">
-                        <i class="fas fa-plus-circle"></i> Registrar Nueva Atención
-                    </a>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-header card-header-pink">
-                            <h4 class="h6 mb-0"><i class="fas fa-history me-2"></i>Atenciones Recientes</h4>
-                        </div>
-                        <div class="card-body">
-                            {% if atenciones %}
-                                <ul class="list-group list-group-flush">
-                                    {% for atencion in atenciones %}
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span>{{ atencion.fecha|date:"d/m/Y" }} - {{ atencion.paciente_nombre }} {{ atencion.paciente_apellido }}</span>
-                                            <a href="{% url 'detalle_atencion' pk=atencion.pk %}" class="btn btn-sm btn-outline-secondary">Ver</a>
-                                        </li>
-                                    {% empty %}
-                                        <li class="list-group-item text-muted">No hay atenciones registradas.</li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                 <p class="text-muted">No hay atenciones registradas.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+    <div class="{% if es_admin %}col-12{% else %}col-md-7{% endif %} mb-4">
+        <div class="card h-100">
+            <div class="card-header card-header-pink d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Últimas Atenciones</h5>
+                {% if es_admin %}<span class="badge bg-light text-dark">Global</span>{% endif %}
             </div>
-        {% endblock %} {# Fin del bloque de contenido principal #}
-
-    </div> <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
-        {# Copiamos los mensajes de Django aquí para que JS los procese #}
-         {% if messages %}
-            <div id="django-messages" style="display: none;"> {# Oculto para el usuario #}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-            </div>
-        {% endif %}
-     </div>
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // --- Lógica del Reloj y Fecha (HH:MM) ---
-        function actualizarRelojYFecha() {
-             const ahora = new Date();
-             const opcionesHora = { hour: '2-digit', minute: '2-digit', hour12: false };
-             const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
-             const horaFormateada = ahora.toLocaleTimeString('es-CL', opcionesHora);
-             const fechaFormateada = ahora.toLocaleDateString('es-CL', opcionesFecha);
-             const relojEl = document.getElementById('reloj');
-             const fechaEl = document.getElementById('fecha');
-             if (relojEl) relojEl.textContent = horaFormateada;
-             if (fechaEl) fechaEl.textContent = fechaFormateada;
-        }
-        actualizarRelojYFecha();
-        setInterval(actualizarRelojYFecha, 1000);
-
-        // --- Lógica para Ocultar/Mostrar Sidebar ---
-        const sidebar = document.querySelector('.sidebar');
-        const mainContent = document.querySelector('.main-content');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('sidebar-collapsed');
-        });
-
-        // --- Lógica para Cambiar Tema (Claro/Oscuro) ---
-        const themeSwitch = document.getElementById('themeSwitch');
-        function setTheme(theme) {
-            document.body.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('theme', theme);
-            if (themeSwitch) { themeSwitch.checked = (theme === 'dark'); }
-        }
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        setTheme(currentTheme);
-        themeSwitch.addEventListener('change', function(e) { setTheme(e.target.checked ? 'dark' : 'light'); });
-
-        // ========= LÓGICA PARA MOSTRAR MENSAJES DE DJANGO COMO TOASTS =========
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const toastContainer = document.querySelector('.toast-container');
-            const messageContainer = document.getElementById('django-messages');
-
-            if (toastContainer && messageContainer) {
-                const djangoMessages = messageContainer.querySelectorAll('.alert');
-
-                djangoMessages.forEach((msgElement, index) => {
-                    let toastClass = 'text-bg-info'; // Default
-                    if (msgElement.classList.contains('alert-success')) toastClass = 'text-bg-success';
-                    if (msgElement.classList.contains('alert-danger') || msgElement.classList.contains('alert-error')) toastClass = 'text-bg-danger';
-                    if (msgElement.classList.contains('alert-warning')) toastClass = 'text-bg-warning';
-
-                    // Quita el botón de cierre original si existe
-                    const closeButton = msgElement.querySelector('.btn-close');
-                    if (closeButton) closeButton.remove();
-
-                    const toastHTML = `
-                        <div class="toast align-items-center ${toastClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
-                            <div class="d-flex">
-                                <div class="toast-body">
-                                    ${msgElement.innerHTML}
+            <div class="card-body p-0">
+                {% if atenciones %}
+                    <div class="list-group list-group-flush">
+                        {% for atencion in atenciones %}
+                            <div class="list-group-item list-group-item-action px-4 py-3">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;"><i class="fas fa-user text-secondary"></i></div>
+                                        <div>
+                                            <h6 class="mb-0">{{ atencion.paciente_nombre }} {{ atencion.paciente_apellido }}</h6>
+                                            <small class="text-muted"><i class="far fa-clock me-1"></i>{{ atencion.fecha|date:"d/m/Y" }} - {{ atencion.hora_atencion|time:"H:i" }}</small>
+                                            {% if es_admin %}<div class="mt-1"><span class="badge bg-info text-dark"><i class="fas fa-user-md me-1"></i> Dr. {{ atencion.doctor.user.last_name }}</span></div>{% endif %}
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'detalle_atencion' pk=atencion.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill">Ver</a>
                                 </div>
-                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                             </div>
-                        </div>
-                    `;
-                    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-                });
-
-                messageContainer.remove(); // Elimina el contenedor oculto
-
-                // Inicializa y muestra todos los toasts
-                const toastElements = toastContainer.querySelectorAll('.toast');
-                toastElements.forEach(toastEl => {
-                    const toast = new bootstrap.Toast(toastEl);
-                    toast.show();
-                });
-            }
-            
-            // Elimina los .alert que Django haya podido renderizar dentro del bloque de contenido
-            const mainAlerts = document.querySelectorAll('.main-content .alert');
-             mainAlerts.forEach(alert => alert.remove());
-        });
-        // =======================================================================
-    </script>
-     {% block extra_script %}{% endblock %}
-</body>
-</html>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="p-5 text-center text-muted"><i class="fas fa-inbox fa-3x mb-3 opacity-50"></i><p>No hay registros.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

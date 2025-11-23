@@ -1,0 +1,83 @@
+{% extends 'odontologia/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 fw-bold text-primary"><i class="fas fa-clipboard-list me-2"></i>Listado de Atenciones</h2>
+        <p class="text-muted m-0">
+            {% if es_admin %}Registro global de la clínica{% else %}Mis atenciones realizadas{% endif %}
+        </p>
+    </div>
+    {% if not es_admin %}
+        <a href="{% url 'registrar_atencion' %}" target="_blank" class="btn btn-success shadow-sm rounded-pill">
+            <i class="fas fa-plus me-2"></i> Nueva
+        </a>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="GET" action="{% url 'lista_atenciones' %}" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <label class="fw-bold text-muted"><i class="fas fa-search me-2"></i>Buscar:</label>
+            </div>
+            <div class="col">
+                <input type="text" name="q" class="form-control" placeholder="Escribe el RUT del paciente..." value="{{ busqueda }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search"></i></button>
+                {% if busqueda %}
+                    <a href="{% url 'lista_atenciones' %}" class="btn btn-outline-secondary" title="Limpiar filtro"><i class="fas fa-times"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header card-header-pink">
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Resultados</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Fecha</th>
+                        <th>Hora</th>
+                        {% if es_admin %}<th>Doctor</th>{% endif %}
+                        <th>Paciente</th>
+                        <th>RUT</th>
+                        <th>Motivo</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for atencion in atenciones %}
+                    <tr>
+                        <td class="ps-4 fw-bold">{{ atencion.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ atencion.hora_atencion|time:"H:i" }}</td>
+                        {% if es_admin %}
+                            <td><span class="badge bg-info text-dark">{{ atencion.doctor.user.last_name }}</span></td>
+                        {% endif %}
+                        <td>{{ atencion.paciente_nombre }} {{ atencion.paciente_apellido }}</td>
+                        <td>{{ atencion.paciente_rut }}</td>
+                        <td>{{ atencion.motivo_visita|truncatechars:30 }}</td>
+                        <td>
+                            <a href="{% url 'detalle_atencion' pk=atencion.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill">Ver</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if es_admin %}7{% else %}6{% endif %}" class="text-center py-5 text-muted">
+                            <i class="fas fa-search-minus fa-3x mb-3 opacity-50"></i>
+                            <p>No se encontraron atenciones.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
