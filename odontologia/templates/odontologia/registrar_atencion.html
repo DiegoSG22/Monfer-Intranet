@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* --- VARIABLES DE ESTILO --- */
         :root {
             --bg-color: #f8f9fa; --text-color: #212529; --card-bg: #ffffff;
             --border-color: #dee2e6; --header-border: #dee2e6;
@@ -35,28 +34,19 @@
             flex-direction: column;
         }
 
-        /* Estilos de la página */
         .focus-header { text-align: center; padding: 20px 0; margin-bottom: 20px; }
         .focus-logo { height: 80px; margin-bottom: 15px; }
         
         .card { background-color: var(--card-bg); border-color: var(--border-color); border-radius: 15px; box-shadow: 0 10px 30px var(--shadow-color); }
         .card-header-pink { background: linear-gradient(to right, #FF69B4, #FFB6C1); color: white; border-bottom: none; border-radius: 15px 15px 0 0 !important; }
         
-        /* Inputs */
         .form-control, .form-select { background-color: var(--input-bg); border-color: var(--input-border); color: var(--input-text); }
         .form-control:focus, .form-select:focus { background-color: var(--input-bg); color: var(--input-text); border-color: #e83e8c; box-shadow: 0 0 0 0.25rem rgba(232, 62, 140, 0.25); }
         .bg-light-custom { background-color: var(--section-bg) !important; border-radius: 10px; border: 1px solid var(--border-color); }
         
-        /* Estilo para el mensaje de error bajo el input */
-        .error-feedback {
-            color: #dc3545;
-            font-size: 0.85em;
-            margin-top: 0.25rem;
-            display: flex;
-            align-items: center;
-        }
+        .error-feedback { color: #dc3545; font-size: 0.85em; margin-top: 0.25rem; display: flex; align-items: center; }
         .error-feedback i { margin-right: 5px; }
-        .is-invalid { border-color: #dc3545 !important; background-image: none !important; }
+        .is-invalid { border-color: #dc3545 !important; }
     </style>
 </head>
 <body data-bs-theme="light">
@@ -74,9 +64,16 @@
                 <div class="card border-0">
                     <div class="card-header card-header-pink py-3 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="fas fa-file-medical me-2"></i>Ficha de Ingreso</h5>
-                        <a href="javascript:window.close();" class="btn btn-sm btn-light text-danger fw-bold shadow-sm" style="border-radius: 20px;">
-                            <i class="fas fa-times me-1"></i> Cerrar
-                        </a>
+                        
+                        {% if is_edit %}
+                            <a href="{% url 'detalle_atencion' pk=form.instance.pk %}" class="btn btn-sm btn-light text-danger fw-bold shadow-sm" style="border-radius: 20px;">
+                                <i class="fas fa-times me-1"></i> Cerrar
+                            </a>
+                        {% else %}
+                            <a href="javascript:window.close();" class="btn btn-sm btn-light text-danger fw-bold shadow-sm" style="border-radius: 20px;">
+                                <i class="fas fa-times me-1"></i> Cerrar
+                            </a>
+                        {% endif %}
                     </div>
                     
                     <div class="card-body p-4">
@@ -91,6 +88,7 @@
                                 </ul>
                             </div>
                         {% endif %}
+
                         <form method="POST">
                             {% csrf_token %}
                             
@@ -99,30 +97,21 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Nombre</label>
                                     {{ form.paciente_nombre }}
-                                    {% if form.paciente_nombre.errors %}
-                                        <div class="error-feedback"><i class="fas fa-exclamation-circle"></i> {{ form.paciente_nombre.errors.0 }}</div>
-                                    {% endif %}
+                                    {% if form.paciente_nombre.errors %}<div class="error-feedback"><i class="fas fa-exclamation-circle"></i> {{ form.paciente_nombre.errors.0 }}</div>{% endif %}
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Apellido</label>
                                     {{ form.paciente_apellido }}
-                                    {% if form.paciente_apellido.errors %}
-                                        <div class="error-feedback"><i class="fas fa-exclamation-circle"></i> {{ form.paciente_apellido.errors.0 }}</div>
-                                    {% endif %}
+                                    {% if form.paciente_apellido.errors %}<div class="error-feedback"><i class="fas fa-exclamation-circle"></i> {{ form.paciente_apellido.errors.0 }}</div>{% endif %}
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">RUT</label>
                                     {{ form.paciente_rut }}
-                                    {% if form.paciente_rut.errors %}
-                                        <div class="error-feedback fw-bold"><i class="fas fa-exclamation-triangle"></i> {{ form.paciente_rut.errors.0 }}</div>
-                                    {% endif %}
+                                    {% if form.paciente_rut.errors %}<div class="error-feedback fw-bold"><i class="fas fa-exclamation-triangle"></i> {{ form.paciente_rut.errors.0 }}</div>{% endif %}
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Edad</label>
                                     {{ form.paciente_edad }}
-                                    {% if form.paciente_edad.errors %}
-                                        <div class="error-feedback">{{ form.paciente_edad.errors.0 }}</div>
-                                    {% endif %}
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Sexo</label>
@@ -143,16 +132,12 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Fecha</label>
                                     {{ form.fecha }}
-                                    {% if form.fecha.errors %}
-                                        <div class="error-feedback">{{ form.fecha.errors.0 }}</div>
-                                    {% endif %}
+                                    {% if form.fecha.errors %}<div class="error-feedback">{{ form.fecha.errors.0 }}</div>{% endif %}
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Hora</label>
                                     {{ form.hora_atencion }}
-                                    {% if form.hora_atencion.errors %}
-                                        <div class="error-feedback">{{ form.hora_atencion.errors.0 }}</div>
-                                    {% endif %}
+                                    {% if form.hora_atencion.errors %}<div class="error-feedback">{{ form.hora_atencion.errors.0 }}</div>{% endif %}
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Método de Pago</label>
@@ -186,19 +171,9 @@
                                             <tr>
                                                 <td>
                                                     {{ form.especialidad }} {{ form.id }}
-                                                    {% if form.especialidad.errors %}
-                                                        <div class="error-feedback small">{{ form.especialidad.errors.0 }}</div>
-                                                    {% endif %}
                                                 </td>
-                                                <td>
-                                                    {{ form.descripcion }}
-                                                </td>
-                                                <td>
-                                                    {{ form.valor }}
-                                                    {% if form.valor.errors %}
-                                                        <div class="error-feedback small">{{ form.valor.errors.0 }}</div>
-                                                    {% endif %}
-                                                </td>
+                                                <td>{{ form.descripcion }}</td>
+                                                <td>{{ form.valor }}</td>
                                                 {% if is_edit %}
                                                     <td class="text-center">
                                                         {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
@@ -213,7 +188,16 @@
                             <hr class="my-4">
 
                             <div class="d-flex justify-content-end gap-3">
-                                <a href="javascript:window.close();" class="btn btn-outline-secondary px-4">Cancelar</a>
+                                {% if is_edit %}
+                                    <a href="{% url 'detalle_atencion' pk=form.instance.pk %}" class="btn btn-outline-secondary px-4">
+                                        Cancelar
+                                    </a>
+                                {% else %}
+                                    <a href="javascript:window.close();" class="btn btn-outline-secondary px-4">
+                                        Cancelar
+                                    </a>
+                                {% endif %}
+                                
                                 <button type="submit" class="btn btn-success px-5 py-2 shadow-sm fw-bold">
                                     <i class="fas fa-check-circle me-2"></i> 
                                     {% if is_edit %}Guardar Cambios{% else %}Finalizar Registro{% endif %}
@@ -232,13 +216,10 @@
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.body.setAttribute('data-bs-theme', savedTheme);
             
-            // Añadir clase de error visual a los inputs inválidos
             const inputsConError = document.querySelectorAll('.error-feedback');
             inputsConError.forEach(errorDiv => {
                 const input = errorDiv.previousElementSibling;
-                if (input) {
-                    input.classList.add('is-invalid');
-                }
+                if (input) { input.classList.add('is-invalid'); }
             });
         });
     </script>
